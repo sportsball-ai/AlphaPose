@@ -20,7 +20,8 @@ alpha = 0.1
 #pool = ThreadPool(4)
 
 
-def pose_nms(bboxes, bbox_scores, pose_preds, pose_scores):
+# def pose_nms(bboxes, bbox_scores, pose_preds, pose_scores):
+def pose_nms(bboxes, pose_preds, pose_scores):
     '''
     Parametric Pose NMS algorithm
     bboxes:         bbox locations list (n, 4)
@@ -34,10 +35,10 @@ def pose_nms(bboxes, bbox_scores, pose_preds, pose_scores):
 
     final_result = []
 
-    ori_bbox_scores = bbox_scores.clone()
+    # ori_bbox_scores = bbox_scores.clone()
     ori_pose_preds = pose_preds.clone()
     ori_pose_scores = pose_scores.clone()
-
+    print("bboxes", bboxes)
     xmax = bboxes[:, 2]
     xmin = bboxes[:, 0]
     ymax = bboxes[:, 3]
@@ -45,7 +46,9 @@ def pose_nms(bboxes, bbox_scores, pose_preds, pose_scores):
 
     widths = xmax - xmin
     heights = ymax - ymin
+    print('w, h, alpha', widths, heights, alpha)
     ref_dists = alpha * np.maximum(widths, heights)
+    print('ref distances', ref_dists)
 
     nsamples = bboxes.shape[0]
     human_scores = pose_scores.mean(dim=1)
@@ -78,12 +81,12 @@ def pose_nms(bboxes, bbox_scores, pose_preds, pose_scores):
         pose_scores = np.delete(pose_scores, delete_ids, axis=0)
         human_ids = np.delete(human_ids, delete_ids)
         human_scores = np.delete(human_scores, delete_ids, axis=0)
-        bbox_scores = np.delete(bbox_scores, delete_ids, axis=0)
+        # bbox_scores = np.delete(bbox_scores, delete_ids, axis=0)
 
     assert len(merge_ids) == len(pick)
     preds_pick = ori_pose_preds[pick]
     scores_pick = ori_pose_scores[pick]
-    bbox_scores_pick = ori_bbox_scores[pick]
+    # bbox_scores_pick = ori_bbox_scores[pick]
     #final_result = pool.map(filter_result, zip(scores_pick, merge_ids, preds_pick, pick, bbox_scores_pick))
     #final_result = [item for item in final_result if item is not None]
 
@@ -114,8 +117,9 @@ def pose_nms(bboxes, bbox_scores, pose_preds, pose_scores):
         final_result.append({
             'keypoints': merge_pose - 0.3,
             'kp_score': merge_score,
-            'proposal_score': torch.mean(merge_score) + bbox_scores_pick[j] + 1.25 * max(merge_score)
-        })
+            # 'proposal_score': torch.mean(merge_score) + bbox_scores_pick[j] + 1.25 * max(merge_score)}
+            'proposal_score': torch.mean(merge_score) + 1.25 * max(merge_score)}
+        )
 
     return final_result
 
@@ -266,6 +270,7 @@ def get_parametric_distance(i, all_preds, keypoint_scores, ref_dist):
 
 
 def PCK_match(pick_pred, all_preds, ref_dist):
+    print('ref_dist', ref_dist)
     dist = torch.sqrt(torch.sum(
         torch.pow(pick_pred[np.newaxis, :] - all_preds, 2),
         dim=2
@@ -279,7 +284,8 @@ def PCK_match(pick_pred, all_preds, ref_dist):
     return num_match_keypoints
 
 
-def write_json(all_results, outputpath, for_eval=False):
+# def write_json(all_results, outputpath, for_eval=False):
+def write_json(all_results, for_eval=False):
     '''
     all_result: result dict of predictions
     outputpath: output directory
@@ -340,24 +346,25 @@ def write_json(all_results, outputpath, for_eval=False):
                 json_results_cmu[result['image_id']]['people'].append(tmp)
             else:
                 json_results.append(result)
+    return json.dumps(json_results)
 
-    if form == 'cmu': # the form of CMU-Pose
-        with open(os.path.join(outputpath,'alphapose-results.json'), 'w') as json_file:
-            json_file.write(json.dumps(json_results_cmu))
-            if not os.path.exists(os.path.join(outputpath,'sep-json')):
-                os.mkdir(os.path.join(outputpath,'sep-json'))
-            for name in json_results_cmu.keys():
-                with open(os.path.join(outputpath,'sep-json',name.split('.')[0]+'.json'),'w') as json_file:
-                    json_file.write(json.dumps(json_results_cmu[name]))
-    elif form == 'open': # the form of OpenPose
-        with open(os.path.join(outputpath,'alphapose-results.json'), 'w') as json_file:
-            json_file.write(json.dumps(json_results_cmu))
-            if not os.path.exists(os.path.join(outputpath,'sep-json')):
-                os.mkdir(os.path.join(outputpath,'sep-json'))
-            for name in json_results_cmu.keys():
-                with open(os.path.join(outputpath,'sep-json',name.split('.')[0]+'.json'),'w') as json_file:
-                    json_file.write(json.dumps(json_results_cmu[name]))
-    else:
-        with open(os.path.join(outputpath,'alphapose-results.json'), 'w') as json_file:
-            json_file.write(json.dumps(json_results))
+    # if form == 'cmu': # the form of CMU-Pose
+    #     with open(os.path.join(outputpath,'alphapose-results.json'), 'w') as json_file:
+    #         json_file.write(json.dumps(json_results_cmu))
+    #         if not os.path.exists(os.path.join(outputpath,'sep-json')):
+    #             os.mkdir(os.path.join(outputpath,'sep-json'))
+    #         for name in json_results_cmu.keys():
+    #             with open(os.path.join(outputpath,'sep-json',name.split('.')[0]+'.json'),'w') as json_file:
+    #                 json_file.write(json.dumps(json_results_cmu[name]))
+    # elif form == 'open': # the form of OpenPose
+    #     with open(os.path.join(outputpath,'alphapose-results.json'), 'w') as json_file:
+    #         json_file.write(json.dumps(json_results_cmu))
+    #         if not os.path.exists(os.path.join(outputpath,'sep-json')):
+    #             os.mkdir(os.path.join(outputpath,'sep-json'))
+    #         for name in json_results_cmu.keys():
+    #             with open(os.path.join(outputpath,'sep-json',name.split('.')[0]+'.json'),'w') as json_file:
+    #                 json_file.write(json.dumps(json_results_cmu[name]))
+    # else:
+    #     with open(os.path.join(outputpath,'alphapose-results.json'), 'w') as json_file:
+    #         json_file.write(json.dumps(json_results))
 
