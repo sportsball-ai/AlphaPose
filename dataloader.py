@@ -12,13 +12,13 @@ from AlphaPose.matching import candidate_reselect as matching
 from AlphaPose.SPPE.src.utils.eval import getPrediction, getMultiPeakPrediction
 from AlphaPose.yolo.util import write_results, dynamic_write_results
 from AlphaPose.yolo.darknet import Darknet
+from AlphaPose.fn import getTime
 from tqdm import tqdm
 import cv2
 import json
 import numpy as np
 import sys
 import time
-from fn import getTime
 import torch.multiprocessing as mp
 from multiprocessing import Process
 from multiprocessing import Queue as pQueue
