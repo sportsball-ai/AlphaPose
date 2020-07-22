@@ -32,9 +32,9 @@ else:
     from Queue import Queue, LifoQueue
 
 if opt.vis_fast:
-    from fn import vis_frame_fast as vis_frame
+    from AlphaPose.fn import vis_frame_fast as vis_frame
 else:
-    from fn import vis_frame
+    from AlphaPose.fn import vis_frame
 
 
 class Image_loader(data.Dataset):
