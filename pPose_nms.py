@@ -61,6 +61,7 @@ def pose_nms(bboxes, pose_preds, pose_scores):
         # Pick the one with highest score
         pick_id = torch.argmax(human_scores)
         pick.append(human_ids[pick_id])
+        # num_visPart = torch.sum(pose_scores[pick_id] > 0.2)
 ​
         # Get numbers of match keypoints by calling PCK_match
         ref_dist = ref_dists[human_ids[pick_id]]
@@ -72,17 +73,22 @@ def pose_nms(bboxes, pose_preds, pose_scores):
 ​
         if delete_ids.shape[0] == 0:
             delete_ids = pick_id
-​
+        #else:
+        #    delete_ids = torch.from_numpy(delete_ids)
 ​
         merge_ids.append(human_ids[delete_ids])
         pose_preds = np.delete(pose_preds, delete_ids, axis=0)
         pose_scores = np.delete(pose_scores, delete_ids, axis=0)
         human_ids = np.delete(human_ids, delete_ids)
         human_scores = np.delete(human_scores, delete_ids, axis=0)
+        # bbox_scores = np.delete(bbox_scores, delete_ids, axis=0)
 ​
     assert len(merge_ids) == len(pick)
     preds_pick = ori_pose_preds[pick]
     scores_pick = ori_pose_scores[pick]
+    # bbox_scores_pick = ori_bbox_scores[pick]
+    #final_result = pool.map(filter_result, zip(scores_pick, merge_ids, preds_pick, pick, bbox_scores_pick))
+    #final_result = [item for item in final_result if item is not None]
 ​
     for j in range(len(pick)):
         ids = np.arange(17)
@@ -111,6 +117,7 @@ def pose_nms(bboxes, pose_preds, pose_scores):
         final_result.append({
             'keypoints': merge_pose - 0.3,
             'kp_score': merge_score,
+            # 'proposal_score': torch.mean(merge_score) + bbox_scores_pick[j] + 1.25 * max(merge_score)}
             'proposal_score': torch.mean(merge_score) + 1.25 * max(merge_score)}
         )
 ​
@@ -286,6 +293,7 @@ def write_json(all_results, for_eval=False):
     form = opt.format
     json_results = []
     json_results_cmu = {}
+    print("results length", len(all_results))
     for im_res in all_results:
         im_name = im_res['imgname']
         for human in im_res['result']:
@@ -339,4 +347,5 @@ def write_json(all_results, for_eval=False):
                 json_results_cmu[result['image_id']]['people'].append(tmp)
             else:
                 json_results.append(result)
+    print("json", len(json_results))
     return json_results
