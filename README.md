@@ -7,6 +7,7 @@
 ### This branch is developed on PyTorch 0.4.0. We have released a new version of AlphaPose based on PyTorch 1.1+. Please checkout our [master](https://github.com/MVIG-SJTU/AlphaPose) branch for more details. 
 
 ## News!
+- Jun 2020: [**MXNet** version](https://github.com/MVIG-SJTU/AlphaPose/tree/pytorch) use AlphaPose as a module.
 - Dec 2019: [**v0.3.0** version](https://github.com/MVIG-SJTU/AlphaPose) of AlphaPose is released! Smaller model, higher accuracy!
 - Apr 2019: [**MXNet** version](https://github.com/MVIG-SJTU/AlphaPose/tree/mxnet) of AlphaPose is released! It runs at **23 fps** on COCO validation set.
 - Feb 2019: [CrowdPose](https://github.com/MVIG-SJTU/AlphaPose/blob/pytorch/doc/CrowdPose.md) is integrated into AlphaPose Now!
