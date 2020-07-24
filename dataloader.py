@@ -724,8 +724,10 @@ class DataWriter:
         time.sleep(0.2)
 
     def results(self):
-        # return final result
-        return self.final_result
+        # return batch result
+        batch_result = list(self.final_result)
+        self.final_result = []
+        return batch_result
 
     def len(self):
         # return queue len
